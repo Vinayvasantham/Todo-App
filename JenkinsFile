@@ -1,0 +1,93 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        SONARQUBE_URL = 'http://127.0.1.1:9000'
+        SONARQUBE_TOKEN = credentials('Sonarqube')
+        GITHUB_CREDENTIALS = credentials('Git-cred')
+        GIT_REPO_NAME = "Todo-App"
+        GIT_USER_NAME = "Vinayvasantham"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/Vinayvasantham/Todo-App.git'
+            }
+        }
+
+        stage('Build & Test') {
+            steps {
+                sh 'python -m venv venv'
+                sh './venv/bin/pip install -r requirements.txt'
+                sh './venv/bin/python manage.py test'
+            }
+        }
+
+        stage('SonarQube Scan') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                    ./venv/bin/sonar-scanner \
+                    -Dsonar.projectKey=your-project-key \
+                    -Dsonar.sources=. \
+                    -Dsonar.host.url=${SONARQUBE_URL} \
+                    -Dsonar.login=${SONARQUBE_TOKEN}
+                    '''
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("vinayvasantham/todoapp:${env.BUILD_NUMBER}")
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'DOCKERHUB_CREDENTIALS') {
+                        dockerImage.push("${env.BUILD_NUMBER}")
+                        dockerImage.push("latest")
+                    }
+                }
+            }
+        }
+
+        stage('Update Deployment File') {
+        environment {
+            GIT_REPO_NAME = "Jenkins-Zero-To-Hero"
+            GIT_USER_NAME = "Vinayvasantham"
+        }
+        steps {
+           {
+                sh '''
+                    git config user.email "nagavinay.vasantham_mel2020@svce.edu.in"
+                    git config user.name "Vinayvasantham"
+                    BUILD_NUMBER=${BUILD_NUMBER}
+                    sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" todoapp-manifests/deployment.yaml
+                    git add todoapp-manifests/deployment.yaml
+                    git commit -m "Update deployment image to version ${BUILD_NUMBER}"
+                    git push https://${GITHUB_CREDENTIALS}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git main
+                '''
+            }
+        }
+    }
+
+        // stage('Deploy with ArgoCD') {
+        //     steps {
+        //         sh "argocd app sync your-argocd-app-name"
+        //     }
+        // }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
