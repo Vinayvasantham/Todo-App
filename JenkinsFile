@@ -1,67 +1,66 @@
 pipeline {
     
-    agent any 
+    agent any
     
     environment {
         IMAGE_TAG = "${BUILD_NUMBER}"
     }
-    
+
     stages {
-        
-        stage('Checkout'){
-           steps {
-                git credentialsId: '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', 
-                url: 'https://github.com/Vinayvasantham/Todo-App',
-                branch: 'main'
-           }
-        }
 
-        stage('Build Docker'){
-            steps{
-                script{
-                    sh '''
-                    echo 'Buid Docker Image'
-                    docker build -t vinayvasantham/todo-app-cicd:${BUILD_NUMBER} .
-                    '''
-                }
-            }
-        }
-
-        stage('Push the artifacts'){
-           steps{
-                script{
-                    sh '''
-                    echo 'Push to Repo'
-                    docker push vinayvasantham/todo-app-cicd:${BUILD_NUMBER}
-                    '''
-                }
-            }
-        }
-        
-        stage('Checkout K8S manifest SCM'){
+        stage('Checkout') {
             steps {
-                git credentialsId: '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', 
-                url: 'https://github.com/Vinayvasantham/Todo-App/tree/main/todoapp-manifests',
-                branch: 'main'
-            }
-        }
-        
-        stage('Update K8S manifest & push to Repo'){
-            steps {
-                script{
-                    withCredentials([usernamePassword(credentialsId: 'Git-cred', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-                        sh '''
-                        cat deploy.yaml
-                        sed -i '' "s/32/${BUILD_NUMBER}/g" deployment.yaml
-                        cat deploy.yaml
-                        git add deploy.yaml
-                        git commit -m 'Updated the deployment yaml | Jenkins Pipeline'
-                        git remote -v
-                        git push https://github.com/Vinayvasantham/Todo-App/tree/main/todoapp-manifests HEAD:main
-                        '''                        
+                script {
+                    withCredentials([string(credentialsId: 'GitHub-AuthToken', variable: 'GITHUB_TOKEN')]) {
+                        git url: 'https://github.com/Vinayvasantham/Todo-App',
+                            branch: 'main',
+                            credentialsId: 'GitHub-AuthToken'
                     }
                 }
             }
         }
-    }
-}
+
+        stage('Build Docker') {
+            steps {
+                script {
+                    bat '''
+                    echo Building Docker Image
+                    docker build -t vinayvasantham/todo-app-cicd:%BUILD_NUMBER% .
+                    '''
+                }
+            }
+        }
+
+        stage('Push the artifacts') {
+            steps {
+                script {
+                    bat '''
+                    echo Pushing to Repo
+                    docker push vinayvasantham/todo-app-cicd:%BUILD_NUMBER%
+                    '''
+                }
+            }
+        }
+
+        stage('Checkout K8S manifest SCM') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'GitHub-AuthToken', variable: 'GITHUB_TOKEN')]) {
+                        git url: 'https://github.com/Vinayvasantham/Todo-App/tree/main/todoapp-manifests',
+                            branch: 'main',
+                            credentialsId: 'GitHub-AuthToken'
+                    }
+                }
+            }
+        }
+
+        stage('Update K8S manifest & push to Repo') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'Git-cred', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                        bat '''
+                        type deploy.yaml
+                        powershell -Command "(Get-Content deployment.yaml).replace('32', '%BUILD_NUMBER%') | Set-Content deployment.yaml"
+                        type deploy.yaml
+                        git add deploy.yaml
+                        git commit -m "Updated the
