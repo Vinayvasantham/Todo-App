@@ -63,6 +63,8 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'Git-cred', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
                         bat '''
+                        git config --global user.name "%GIT_USERNAME%"
+                        git config --global user.email "nagavinay.vasantham_mel2020@svce.edu.in"
                         cd todoapp-manifests
                         type deployment.yaml
                         C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command "(Get-Content deployment.yaml).replace('32', '%BUILD_NUMBER%') | Set-Content deployment.yaml"
@@ -70,7 +72,7 @@ pipeline {
                         git add deployment.yaml
                         git commit -m "Updated the deployment yaml | Jenkins Pipeline"
                         git remote -v
-                        git push https://github.com/Vinayvasantham/Todo-App/todoapp-manifests HEAD:main
+                        git push https://%GIT_USERNAME%:%GIT_PASSWORD%@github.com/Vinayvasantham/Todo-App.git HEAD:main
                         '''
                     }
                 }
