@@ -63,6 +63,7 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'Git-cred', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
                         bat '''
+                        cd todoapp-manifests
                         type deployment.yaml
                         powershell -Command "(Get-Content deployment.yaml).replace('32', '%BUILD_NUMBER%') | Set-Content deployment.yaml"
                         type deployment.yaml
