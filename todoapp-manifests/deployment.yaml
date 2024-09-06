@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: todo-app
-          image: vinayvasantham/django-todo-app:v2
+          image: vinayvasantham/todo-app-cicd:32
           ports:
             - containerPort: 8090 
