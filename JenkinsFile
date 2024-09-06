@@ -63,4 +63,13 @@ pipeline {
                         powershell -Command "(Get-Content deployment.yaml).replace('32', '%BUILD_NUMBER%') | Set-Content deployment.yaml"
                         type deploy.yaml
                         git add deploy.yaml
-                        git commit -m "Updated the
+                        git commit -m "Updated the deployment yaml | Jenkins Pipeline"
+                        git remote -v
+                        git push https://github.com/Vinayvasantham/Todo-App/tree/main/todoapp-manifests HEAD:main
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}
