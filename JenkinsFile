@@ -67,7 +67,7 @@ pipeline {
                         git config --global user.email "nagavinay.vasantham_mel2020@svce.edu.in"
                         cd todoapp-manifests
                         type deployment.yaml
-                        C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -Command "(Get-Content deployment.yaml).replace('32', '%BUILD_NUMBER%') | Set-Content deployment.yaml"
+                        powershell -Command "(Get-Content deployment.yaml) -replace 'image: your-image-name:32', 'image: your-image-name:%BUILD_NUMBER%' | Set-Content deployment.yaml"
                         type deployment.yaml
                         git add deployment.yaml
                         git commit -m "Updated the deployment yaml | Jenkins Pipeline"
