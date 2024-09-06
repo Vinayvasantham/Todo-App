@@ -31,16 +31,20 @@ pipeline {
             }
         }
 
-        stage('Push the artifacts') {
+        stage('Push Docker Image') {
             steps {
                 script {
-                    bat '''
-                    echo Pushing to Repo
-                    docker push vinayvasantham/todo-app-cicd:%BUILD_NUMBER%
-                    '''
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        bat '''
+                        echo Logging in to DockerHub
+                        docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%
+                        echo Pushing Docker Image
+                        docker push vinayvasantham/todo-app-cicd:%BUILD_NUMBER%
+                        '''
+                    }
                 }
             }
-        }
+       }
 
         stage('Checkout K8S manifest SCM') {
             steps {
