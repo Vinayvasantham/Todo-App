@@ -1,13 +1,5 @@
-# Use the official Python image from Docker Hub
+# Use the official Python image from the Docker Hub
 FROM python:3.12-slim
-
-# Install system dependencies required for Python packages, including distutils
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3-distutils \
-    python3-pip \
-    gcc \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -16,22 +8,31 @@ ENV PYTHONUNBUFFERED 1
 # Set the working directory
 WORKDIR /app
 
-# Copy the requirements file and install dependencies
+# Install necessary build tools and PostgreSQL development libraries
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpq-dev \
+    gcc \
+    python3-dev \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the requirements file into the image
 COPY requirements.txt /app/
+
+# Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy the project files to the working directory
+# Copy the entire project into the image
 COPY . /app/
 
-# Run migrations to set up the database
-RUN python manage.py migrate
-
-# Expose the port the app will run on
+# Expose the port the app runs on
 EXPOSE 8000
 
-# Set the default command to run the Django development server
+# Run the Django development server
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
 
 
 
