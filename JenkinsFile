@@ -50,7 +50,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([string(credentialsId: 'GitHub-AuthToken', variable: 'GITHUB_TOKEN')]) {
-                        git url: 'https://github.com/Vinayvasantham/cicd-demo-manifest-repo.git',
+                        git url: 'https://github.com/Vinayvasantham/Todo-App.git',
                             branch: 'main',
                             credentialsId: 'GitHub-AuthToken'
                     }
