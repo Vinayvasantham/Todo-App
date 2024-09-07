@@ -78,7 +78,7 @@ pipeline {
                     cd todoapp-manifests
                     git pull origin main
                     type deployment.yaml
-                    powershell -Command "(Get-Content deployment.yaml) -replace 'vinayvasantham/todo-app-cicd:56', 'vinayvasantham/todo-app-cicd:%BUILD_NUMBER%' | Set-Content deployment.yaml"
+                    powershell -Command "(Get-Content deployment.yaml) -replace 'vinayvasantham/todo-app-cicd:62', 'vinayvasantham/todo-app-cicd:%BUILD_NUMBER%' | Set-Content deployment.yaml"
                     type deployment.yaml
                     git add deployment.yaml
                     git commit -m "Updated the deployment.yaml with build number | Jenkins Pipeline"
