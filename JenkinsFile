@@ -82,7 +82,7 @@ pipeline {
                     type deployment.yaml
                     git add deployment.yaml
                     git commit -m "Updated the deployment.yaml with build number | Jenkins Pipeline"
-                    git push https://%GITHUB_TOKEN%@github.com/Vinayvasantham/cicd-demo-manifest-repo.git HEAD:main
+                    git push https://%GITHUB_TOKEN%@github.com/Vinayvasantham/Todo-App.git HEAD:main
                     '''
                 }
             }
