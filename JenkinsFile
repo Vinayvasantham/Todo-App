@@ -59,31 +59,35 @@ pipeline {
         }
 
         stage('Update K8S manifest & push to Repo') {
-    steps {
-        script {
-            withCredentials([usernamePassword(credentialsId: 'Git-cred', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-                bat '''
-                git config --global user.name "%GIT_USERNAME%"
-                git config --global user.email "nagavinay.vasantham_mel2020@svce.edu.in"
-                
-                REM Clone the repository if todoapp-manifests doesn't exist
-                IF NOT EXIST todoapp-manifests (
-                    git clone https://github.com/Vinayvasantham/Todo-App.git todoapp-manifests
-                )
-                
-                cd todoapp-manifests
-                type deployment.yaml
-                powershell -Command "(Get-Content deployment.yaml) -replace 'vinayvasantham/django-todo-app:v2', 'vinayvasantham/django-todo-app:%BUILD_NUMBER%' | Set-Content deployment.yaml"
-                type deployment.yaml
-                git add deployment.yaml
-                git commit -m "Updated the deployment.yaml with build number | Jenkins Pipeline"
-                git remote -v
-                git push https://%GIT_USERNAME%:%GIT_PASSWORD%@github.com/Vinayvasantham/cicd-demo-manifest-repo.git HEAD:main
-                '''
-                    }
+            environment {
+                GIT_REPO_NAME = "cicd-demo-manifest-repo"
+                GIT_USER_NAME = "Vinayvasantham"
+            }
+            steps {
+                withCredentials([string(credentialsId: 'GitHub-AuthToken', variable: 'GITHUB_TOKEN')]) {
+                    bat '''
+                    git config --global user.name "%GIT_USER_NAME%"
+                    git config --global user.email "nagavinay.vasantham_mel2020@svce.edu.in"
+                    
+                    REM Clone the repository if todoapp-manifests doesn't exist
+                    IF NOT EXIST todoapp-manifests (
+                        git clone https://github.com/Vinayvasantham/Todo-App.git todoapp-manifests
+                    )
+                    
+                    cd todoapp-manifests
+                    cd todoapp-manifests
+                    git pull origin main
+                    type deployment.yaml
+                    powershell -Command "(Get-Content deployment.yaml) -replace 'vinayvasantham/todo-app-cicd:55', 'vinayvasantham/todo-app-cicd:%BUILD_NUMBER%' | Set-Content deployment.yaml"
+                    type deployment.yaml
+                    git add deployment.yaml
+                    git commit -m "Updated the deployment.yaml with build number | Jenkins Pipeline"
+                    git push https://%GITHUB_TOKEN%@github.com/Vinayvasantham/cicd-demo-manifest-repo.git HEAD:main
+                    '''
                 }
             }
         }
+
 
     }
 }
